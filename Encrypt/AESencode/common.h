@@ -70,18 +70,18 @@ BOOL PaddBuffer(IN PBYTE InputBuffer, IN SIZE_T InputBufferSize, OUT PBYTE* Outp
 	PBYTE	PaddedBuffer = NULL;
 	SIZE_T	PaddedSize = NULL;
 
-	// ¼ÆËã×î½Ó½üµÄ 16 µÄ±¶Êı£¬²¢½«Æä±£´æµ½ PaddedSize
+	// è®¡ç®—æœ€æ¥è¿‘çš„ 16 çš„å€æ•°ï¼Œå¹¶å°†å…¶ä¿å­˜åˆ° PaddedSize
 	PaddedSize = InputBufferSize + 16 - (InputBufferSize % 16);
-	// ·ÖÅä ¡°PaddedSize¡± ´óĞ¡µÄ»º³åÇø
+	// åˆ†é… â€œPaddedSizeâ€ å¤§å°çš„ç¼“å†²åŒº
 	PaddedBuffer = (PBYTE)HeapAlloc(GetProcessHeap(), 0, PaddedSize);
 	if (!PaddedBuffer) {
 		return FALSE;
 	}
-	// Çå³ıÒÑ·ÖÅäµÄ»º³åÇø
+	// æ¸…é™¤å·²åˆ†é…çš„ç¼“å†²åŒº
 	ZeroMemory(PaddedBuffer, PaddedSize);
-	// ½«¾É»º³åÇø¸´ÖÆµ½ĞÂÌî³ä»º³åÇø
+	// å°†æ—§ç¼“å†²åŒºå¤åˆ¶åˆ°æ–°å¡«å……ç¼“å†²åŒº
 	memcpy(PaddedBuffer, InputBuffer, InputBufferSize);
-	// ±£´æ½á¹û£º
+	// ä¿å­˜ç»“æœï¼š
 	*OutputPaddedBuffer = PaddedBuffer;
 	*OutputPaddedSize = PaddedSize;
 
@@ -91,41 +91,41 @@ BOOL PaddBuffer(IN PBYTE InputBuffer, IN SIZE_T InputBufferSize, OUT PBYTE* Outp
 BOOL AESencode(PBYTE Data, SIZE_T DataSize) {
 	struct AES_ctx ctx;
 
-	BYTE pKey[KEYSIZE];             // KEYSIZE Îª 32 ¸ö×Ö½Ú
-	BYTE pIv[IVSIZE];              // IVSIZE Îª 16 ¸ö×Ö½Ú
+	BYTE pKey[KEYSIZE];             // KEYSIZE ä¸º 32 ä¸ªå­—èŠ‚
+	BYTE pIv[IVSIZE];              // IVSIZE ä¸º 16 ä¸ªå­—èŠ‚
 
-	srand((unsigned int)time(NULL));                  // Éú³ÉÃÜÔ¿µÄÖÖ×Ó
-	GenerateRandomBytes(pKey, KEYSIZE); // Éú³ÉÃÜÔ¿×Ö½Ú
+	srand((unsigned int)time(NULL));                  // ç”Ÿæˆå¯†é’¥çš„ç§å­
+	GenerateRandomBytes(pKey, KEYSIZE); // ç”Ÿæˆå¯†é’¥å­—èŠ‚
 
-	srand((unsigned int)time(NULL) ^ pKey[0]);     // Éú³É IV µÄÖÖ×Ó¡£Ê¹ÓÃÃÜÔ¿µÄµÚÒ»¸ö×Ö½ÚÀ´Ôö¼ÓËæ»úĞÔ¡£
-	GenerateRandomBytes(pIv, IVSIZE); // Éú³É IV
+	srand((unsigned int)time(NULL) ^ pKey[0]);     // ç”Ÿæˆ IV çš„ç§å­ã€‚ä½¿ç”¨å¯†é’¥çš„ç¬¬ä¸€ä¸ªå­—èŠ‚æ¥å¢åŠ éšæœºæ€§ã€‚
+	GenerateRandomBytes(pIv, IVSIZE); // ç”Ÿæˆ IV
 
-	// ÔÚ¿ØÖÆÌ¨ÉÏ´òÓ¡ÃÜÔ¿ºÍ IV
+	// åœ¨æ§åˆ¶å°ä¸Šæ‰“å°å¯†é’¥å’Œ IV
 	PrintHexData("pKey", pKey, KEYSIZE);
 	PrintHexData("pIv", pIv, IVSIZE);
 
-	// ³õÊ¼»¯ Tiny-AES ¿â
+	// åˆå§‹åŒ– Tiny-AES åº“
 	AES_init_ctx_iv(&ctx, pKey, pIv);
 
-	// ³õÊ¼»¯±äÁ¿£¬ÓÃÓÚÔÚĞèÒªÌî³äµÄÇé¿öÏÂ±£´æĞÂµÄ»º³åÇø»ùµØÖ·¼°Æä´óĞ¡
+	// åˆå§‹åŒ–å˜é‡ï¼Œç”¨äºåœ¨éœ€è¦å¡«å……çš„æƒ…å†µä¸‹ä¿å­˜æ–°çš„ç¼“å†²åŒºåŸºåœ°å€åŠå…¶å¤§å°
 	PBYTE	PaddedBuffer = NULL;
 	SIZE_T	PAddedSize = NULL;
 
-	// ¸ù¾İĞèÒªÌî³ä»º³åÇø
+	// æ ¹æ®éœ€è¦å¡«å……ç¼“å†²åŒº
 	if (DataSize % 16 != 0) {
 		PaddBuffer(Data, DataSize, &PaddedBuffer, &PAddedSize);
-		// ¼ÓÃÜÒÑÌî³äµÄ»º³åÇø
+		// åŠ å¯†å·²å¡«å……çš„ç¼“å†²åŒº
 		AES_CBC_encrypt_buffer(&ctx, PaddedBuffer, PAddedSize);
-		// ÔÚ¿ØÖÆÌ¨ÉÏ´òÓ¡¼ÓÃÜºóµÄ»º³åÇø
+		// åœ¨æ§åˆ¶å°ä¸Šæ‰“å°åŠ å¯†åçš„ç¼“å†²åŒº
 		PrintHexData("AESshellcode", PaddedBuffer, PAddedSize);
 	}
-	// ÎŞĞèÌî³ä£¬Ö±½Ó¼ÓÃÜ 'Data'
+	// æ— éœ€å¡«å……ï¼Œç›´æ¥åŠ å¯† 'Data'
 	else {
 		AES_CBC_encrypt_buffer(&ctx, Data, DataSize);
-		// ÔÚ¿ØÖÆÌ¨ÉÏ´òÓ¡¼ÓÃÜºóµÄ»º³åÇø
+		// åœ¨æ§åˆ¶å°ä¸Šæ‰“å°åŠ å¯†åçš„ç¼“å†²åŒº
 		PrintHexData("AESshellcode", Data, DataSize);
 	}
-	// Èç¹ûÓĞ±ØÒª£¬ÊÍ·Å PaddedBuffer
+	// å¦‚æœæœ‰å¿…è¦ï¼Œé‡Šæ”¾ PaddedBuffer
 	if (PaddedBuffer != NULL) {
 		HeapFree(GetProcessHeap(), 0, PaddedBuffer);
 	}
@@ -165,7 +165,7 @@ BOOL RC4encode(PBYTE Data, SIZE_T DataSize) {
 	for (int i = 0; i < KEYSIZE; i++) {
 		pKey[i] = (BYTE)(rand() % 256);
 	}
-	PrintHexData("RC4 Key", pKey, KEYSIZE);
+	PrintHexData("RC4Key", pKey, KEYSIZE);
 
 	key.Buffer = (PUCHAR)(&pKey);
 	key.Length = KEYSIZE;
@@ -189,15 +189,16 @@ BOOL XORencode(PBYTE Data, SIZE_T DataSize) {
 	for (int i = 0; i < IVSIZE; i++) {
 		pKey[i] = (BYTE)(rand() % 256);
 	}
-	PrintHexData("XOR Key", pKey, IVSIZE);
+	PrintHexData("XORKey", pKey, IVSIZE);
 
 	for (SIZE_T i = 0; i < DataSize; i++) {
-		// Ê¹ÓÃÃÜÔ¿Ñ­»·¶ÔÊı¾İ½øĞĞ XOR ²Ù×÷
+		// ä½¿ç”¨å¯†é’¥å¾ªç¯å¯¹æ•°æ®è¿›è¡Œ XOR æ“ä½œ
 		Data[i] ^= pKey[i % IVSIZE];
 	}
 
-	// ´òÓ¡¼ÓÃÜºóµÄÊı¾İ
-	PrintHexData("XOR CipherText", Data, DataSize);
+	// æ‰“å°åŠ å¯†åçš„æ•°æ®
+	PrintHexData("XORshellcode", Data, DataSize);
 
 	return TRUE;
+
 }
